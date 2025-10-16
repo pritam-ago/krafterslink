@@ -26,6 +26,7 @@ app.get('/health', (req, res) => res.send('Server is healthy'));
 app.use('/api/auth', authRoutes);
 app.use('/api/links', linksRoutes);
 app.use('/api/users', usersRoutes);
+//testing branching
 
 app.use(errorHandler);
 
