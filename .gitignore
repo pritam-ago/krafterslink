@@ -61,3 +61,13 @@ next-env.d.ts
 # Misc
 *.pem
 npm-debug.log*
+
+# Prisma generated client and engine artifacts (keep migrations tracked)
+# server generated client from `prisma generate` resides under server/src/generated/prisma
+/server/src/generated/
+/server/generated/
+
+# Ignore Prisma query engine binaries that may be generated for local platforms
+**/query_engine*.*
+**/query-engine*.*
+**/query_engine-*.node

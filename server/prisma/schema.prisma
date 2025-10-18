@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  HEAD
+  LEAD
+  MEMBER
+}
+
+enum UserDomain {
+  DEVELOPMENT
+  CREATIVES
+  CP
+  CYBER_SECURITY
+  WEB3
+  PR
+  CONTENT
+}
+
+enum SocialPlatform {
+  GITHUB
+  LINKEDIN
+  TWITTER
+  INSTAGRAM
+  FACEBOOK
+  YOUTUBE
+  BEHANCE
+  DRIBBBLE
+  MEDIUM
+  PORTFOLIO
+  OTHER
+}
+
+model User {
+  id          Int        @id @default(autoincrement())
+  uuid        String     @unique @default(uuid()) @db.Uuid
+  name        String     @db.VarChar(255)
+  email       String     @unique @db.VarChar(255)
+  password    String     @db.VarChar(255)
+  role        UserRole
+  domain      UserDomain
+  
+  bio         String?    @db.Text
+  avatar      String?    @db.VarChar(500)
+  profileSlug String     @unique @map("profile_slug") @db.VarChar(100)
+  
+  department      String? @db.VarChar(100)
+  specialization  String? @db.VarChar(100)
+  section         String? @db.VarChar(100)
+  
+  socialLinks SocialLink[]
+  
+  theme    String?  @default("default") @db.VarChar(50)
+  isPublic Boolean  @default(true) @map("is_public")
+  
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([email])
+  @@index([uuid])
+  @@index([profileSlug])
+  @@index([domain])
+  @@index([role])
+  @@map("users")
+}
+
+model SocialLink {
+  id          Int            @id @default(autoincrement())
+  userId      Int            @map("user_id")
+  platform    SocialPlatform
+  url         String         @db.VarChar(500)
+  displayName String?        @map("display_name") @db.VarChar(100)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  
+  // Relation
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, platform])
+  @@index([userId])
+  @@map("social_links")
+}
