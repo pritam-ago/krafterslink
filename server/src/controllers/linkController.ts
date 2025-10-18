@@ -12,6 +12,10 @@ export const getLink = async (req: Request, res: Response) => {
   res.status(200).json({ message: 'get link (placeholder)', id: req.params.id });
 };
 
+export const updateLink = async (req: Request, res: Response) => {
+  res.status(200).json({ message: 'update link (placeholder)', id: req.params.id });
+};
+
 export const deleteLink = async (req: Request, res: Response) => {
   res.status(200).json({ message: 'delete link (placeholder)', id: req.params.id });
 };
