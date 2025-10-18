@@ -1,29 +1,38 @@
-import Link from "next/link";
+import Image from "next/image";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <div className="max-w-lg w-full text-center">
-        <h1 className="text-3xl font-semibold">Welcome to KraftersLink</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Create and manage your short links.
-        </p>
+    <div className="max-w-2xl mx-auto text-center py-20">
+      <h1 className="text-4xl font-bold">Welcome to KraftersLink</h1>
+      <p className="mt-3 text-muted-foreground text-sm md:text-base">
+        A platform that connects creators, innovators, and professionals to collaborate and grow together.
+      </p>
 
-        <div className="mt-6 flex gap-4 justify-center">
-          <Link
-            href="/auth/login"
-            className="rounded-full border border-solid transition-colors px-5 py-2 bg-foreground text-background font-medium"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/auth/signup"
-            className="rounded-full border border-solid transition-colors px-5 py-2 hover:bg-gray-100 font-medium"
-          >
-            Sign up
-          </Link>
-        </div>
+      {/* Add image here */}
+      <div className="mt-10 flex justify-center">
+        <Image
+          src="/codekrafters_white_final.png"
+          alt="Team collaboration illustration"
+          width={200}
+          height={200}
+          className="rounded-lg shadow-md"
+          priority
+        />
       </div>
+
+      <div className="mt-8 flex justify-center gap-4">
+        <button className="px-5 py-2 rounded-md bg-primary text-white hover:bg-primary/90 transition">
+          Get Started
+        </button>
+       <button className="px-5 py-2 rounded-md border border-input text-sm text-white hover:bg-yellow-400 hover:text-black transition">
+         Learn More
+       </button>
+
+      </div>
+          
+      <footer className="mt-16 text-xs text-muted-foreground">
+        © {new Date().getFullYear()} KraftersLink. All rights reserved.
+      </footer>
     </div>
   );
 }
