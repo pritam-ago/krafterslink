@@ -31,6 +31,12 @@ enum Domain {
   CYBERSECURITY
 }
 
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -44,6 +50,7 @@ model User {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  approvalStatus ApprovalStatus @default(PENDING)
 
   // Relations
   socialLinks   SocialLink[]
