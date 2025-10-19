@@ -6,6 +6,7 @@ import pool from './utils/db.js';
 import authRoutes from './routes/auth.js';
 import linksRoutes from './routes/links.js';
 import usersRoutes from './routes/users.js';
+import adminRouter from './routes/admin.js';
 import errorHandler from './middlewares/errorHandler.js';
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.get('/health', (req, res) => res.send('Server is healthy'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/links', linksRoutes);
+app.use('/api/admin', adminRouter);
 app.use('/api/users', usersRoutes);
 //testing branching
 
