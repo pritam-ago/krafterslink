@@ -1,6 +1,8 @@
+// Prisma Schema for Club Websites (Link Hub + Blog Platform)
+
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -8,81 +10,230 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  HEAD
-  LEAD
+// ============================================
+// USER & ROLE MANAGEMENT
+// ============================================
+
+enum Role {
   MEMBER
+  LEAD
+  HEAD
+  PRESIDENT
 }
 
-enum UserDomain {
+enum Domain {
   DEVELOPMENT
+  PR_AND_MANAGEMENT
   CREATIVES
-  CP
-  CYBER_SECURITY
-  WEB3
-  PR
   CONTENT
-}
-
-enum SocialPlatform {
-  GITHUB
-  LINKEDIN
-  TWITTER
-  INSTAGRAM
-  FACEBOOK
-  YOUTUBE
-  BEHANCE
-  DRIBBBLE
-  MEDIUM
-  PORTFOLIO
-  OTHER
+  COMPETITIVE_PROGRAMMING
+  WEB3
+  CYBERSECURITY
 }
 
 model User {
-  id          Int        @id @default(autoincrement())
-  uuid        String     @unique @default(uuid()) @db.Uuid
-  name        String     @db.VarChar(255)
-  email       String     @unique @db.VarChar(255)
-  password    String     @db.VarChar(255)
-  role        UserRole
-  domain      UserDomain
-  
-  bio         String?    @db.Text
-  avatar      String?    @db.VarChar(500)
-  profileSlug String     @unique @map("profile_slug") @db.VarChar(100)
-  
-  department      String? @db.VarChar(100)
-  specialization  String? @db.VarChar(100)
-  section         String? @db.VarChar(100)
-  
-  socialLinks SocialLink[]
-  
-  theme    String?  @default("default") @db.VarChar(50)
-  isPublic Boolean  @default(true) @map("is_public")
-  
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  password      String   // Store hashed passwords
+  name          String
+  bio           String?
+  avatar        String?  // URL to profile picture
+  role          Role     @default(MEMBER)
+  domain        Domain?  // Which of the 7 domains they belong to
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
+  // Relations
+  socialLinks   SocialLink[]
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  
+  // Follow relationships
+  following     Follow[]     @relation("UserFollowing")
+  followers     Follow[]     @relation("UserFollowers")
+  
   @@index([email])
-  @@index([uuid])
-  @@index([profileSlug])
-  @@index([domain])
-  @@index([role])
-  @@map("users")
+  @@index([username])
+}
+
+// ============================================
+// LINK HUB (Linktree-style)
+// ============================================
+
+enum LinkCategory {
+  SOCIAL
+  PORTFOLIO
+  PROJECT
+  CONTACT
+  OTHER
 }
 
 model SocialLink {
-  id          Int            @id @default(autoincrement())
-  userId      Int            @map("user_id")
-  platform    SocialPlatform
-  url         String         @db.VarChar(500)
-  displayName String?        @map("display_name") @db.VarChar(100)
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
-  
-  // Relation
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, platform])
+  id          String       @id @default(cuid())
+  userId      String
+  title       String
+  url         String
+  icon        String?      // Icon name or URL
+  category    LinkCategory @default(OTHER)
+  displayOrder Int         @default(0)
+  isVisible   Boolean      @default(true)
+  clicks      Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
-  @@map("social_links")
+  @@index([displayOrder])
+}
+
+// ============================================
+// BLOG PLATFORM
+// ============================================
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  UNPUBLISHED
+}
+
+model Post {
+  id          String      @id @default(cuid())
+  authorId    String
+  title       String
+  slug        String      @unique
+  content     String      @db.Text
+  excerpt     String?
+  coverImage  String?
+  status      PostStatus  @default(DRAFT)
+  viewCount   Int         @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags        PostTag[]
+  comments    Comment[]
+  likes       Like[]
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  color     String?   // Hex color for UI
+  createdAt DateTime  @default(now())
+
+  // Relations
+  posts     PostTag[]
+
+  @@index([slug])
+}
+
+model PostTag {
+  postId    String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  // Relations
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String   @db.Text
+  parentId  String?  // For nested/threaded comments
+  isEdited  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId]) // A user can only like a post once
+  @@index([postId])
+  @@index([userId])
+}
+
+// ============================================
+// FOLLOW SYSTEM
+// ============================================
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String   // User who is following
+  followingId String   // User being followed
+  createdAt   DateTime @default(now())
+
+  // Relations
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId]) // A user can only follow another user once
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// ============================================
+// OPTIONAL: ACTIVITY LOG
+// ============================================
+
+enum ActivityType {
+  POST_CREATED
+  POST_UPDATED
+  POST_DELETED
+  COMMENT_CREATED
+  LINK_ADDED
+  USER_JOINED
+  USER_FOLLOWED
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  userId      String
+  type        ActivityType
+  description String
+  metadata    Json?        // Store additional data as JSON
+  createdAt   DateTime     @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([type])
 }
