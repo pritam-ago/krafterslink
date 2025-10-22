@@ -18,4 +18,4 @@ const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-export default requireAuth;
+export  {requireAuth, isAdmin};
