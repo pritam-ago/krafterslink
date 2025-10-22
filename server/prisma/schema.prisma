@@ -1,0 +1,246 @@
+// Prisma Schema for Club Websites (Link Hub + Blog Platform)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & ROLE MANAGEMENT
+// ============================================
+
+enum Role {
+  MEMBER
+  LEAD
+  HEAD
+  PRESIDENT
+}
+
+enum Domain {
+  DEVELOPMENT
+  PR_AND_MANAGEMENT
+  CREATIVES
+  CONTENT
+  COMPETITIVE_PROGRAMMING
+  WEB3
+  CYBERSECURITY
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  password      String   // Store hashed passwords
+  name          String
+  bio           String?
+  avatar        String?  // URL to profile picture
+  role          Role     @default(MEMBER)
+  domain        Domain?  // Which of the 7 domains they belong to
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  approvalStatus ApprovalStatus @default(PENDING)
+
+  // Relations
+  socialLinks   SocialLink[]
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  
+  // Follow relationships
+  following     Follow[]     @relation("UserFollowing")
+  followers     Follow[]     @relation("UserFollowers")
+  
+  @@index([email])
+  @@index([username])
+}
+
+// ============================================
+// LINK HUB (Linktree-style)
+// ============================================
+
+enum LinkCategory {
+  SOCIAL
+  PORTFOLIO
+  PROJECT
+  CONTACT
+  OTHER
+}
+
+model SocialLink {
+  id          String       @id @default(cuid())
+  userId      String
+  title       String
+  url         String
+  icon        String?      // Icon name or URL
+  category    LinkCategory @default(OTHER)
+  displayOrder Int         @default(0)
+  isVisible   Boolean      @default(true)
+  clicks      Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([displayOrder])
+}
+
+// ============================================
+// BLOG PLATFORM
+// ============================================
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  UNPUBLISHED
+}
+
+model Post {
+  id          String      @id @default(cuid())
+  authorId    String
+  title       String
+  slug        String      @unique
+  content     String      @db.Text
+  excerpt     String?
+  coverImage  String?
+  status      PostStatus  @default(DRAFT)
+  viewCount   Int         @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  tags        PostTag[]
+  comments    Comment[]
+  likes       Like[]
+
+  @@index([authorId])
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  color     String?   // Hex color for UI
+  createdAt DateTime  @default(now())
+
+  // Relations
+  posts     PostTag[]
+
+  @@index([slug])
+}
+
+model PostTag {
+  postId    String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  // Relations
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  authorId  String
+  content   String   @db.Text
+  parentId  String?  // For nested/threaded comments
+  isEdited  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId]) // A user can only like a post once
+  @@index([postId])
+  @@index([userId])
+}
+
+// ============================================
+// FOLLOW SYSTEM
+// ============================================
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String   // User who is following
+  followingId String   // User being followed
+  createdAt   DateTime @default(now())
+
+  // Relations
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId]) // A user can only follow another user once
+  @@index([followerId])
+  @@index([followingId])
+}
+
+// ============================================
+// OPTIONAL: ACTIVITY LOG
+// ============================================
+
+enum ActivityType {
+  POST_CREATED
+  POST_UPDATED
+  POST_DELETED
+  COMMENT_CREATED
+  LINK_ADDED
+  USER_JOINED
+  USER_FOLLOWED
+}
+
+model ActivityLog {
+  id          String       @id @default(cuid())
+  userId      String
+  type        ActivityType
+  description String
+  metadata    Json?        // Store additional data as JSON
+  createdAt   DateTime     @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([type])
+}
