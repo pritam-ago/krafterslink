@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@swc/cli": "^0.7.8",
+    "@swc/core": "^1.13.21",
+    "lucide-react": "^0.548.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2"
+  }
+}

@@ -1,51 +1,56 @@
-"use client";
-import { useRouter } from "next/navigation";
+'use client'; 
+
+import { FormEvent, useState } from 'react';
 
 export default function ProfilePage() {
-  const router = useRouter();
+  const [username, setUsername] = useState('CodeCraftersClub');
+  const [bio, setBio] = useState('Building and sharing projects. Join the journey!');
+
+  const handleSave = (e: FormEvent) => {
+    e.preventDefault();
+    console.log('Saving profile data:', { username, bio });
+    alert('Profile updated!');
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-6">
-      <div className="bg-gray-800 rounded-2xl shadow-lg p-8 w-full max-w-lg relative">
-        <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full cursor-pointer">
-          P
+    <form onSubmit={handleSave} className="space-y-6">
+      
+      <div className="flex items-center space-x-4">
+        <div className="w-20 h-20 rounded-full bg-yellow-600 border-4 border-[var(--cc-primary)] flex-shrink-0">
+          {/* Profile Image */}
         </div>
-
-        <h2 className="text-2xl font-bold mb-6 text-center">Your KrafterLink</h2>
-
-        <div className="bg-gray-700 p-6 rounded-lg mb-4">
-          <p className="text-gray-300 text-center mb-4">
-            These are your active profile links:
-          </p>
-          <div className="flex flex-col space-y-3">
-            <a
-              href="#"
-              className="bg-gray-600 hover:bg-gray-500 text-center py-2 rounded-lg"
-            >
-              GitHub
-            </a>
-            <a
-              href="#"
-              className="bg-gray-600 hover:bg-gray-500 text-center py-2 rounded-lg"
-            >
-              LinkedIn
-            </a>
-            <a
-              href="#"
-              className="bg-gray-600 hover:bg-gray-500 text-center py-2 rounded-lg"
-            >
-              Portfolio
-            </a>
-          </div>
-        </div>
-
-        <button
-          onClick={() => router.push("/dashboard/createLink")}
-          className="bg-yellow-500 hover:bg-yellow-600 px-6 py-2 rounded-lg w-full"
-        >
-          Edit
+        <button type="button" className="text-sm font-semibold text-[var(--cc-primary)] hover:opacity-80">
+          Change Profile Picture
         </button>
       </div>
-    </div>
+
+      <div>
+        <label htmlFor="username" className="block text-sm font-medium mb-2">Linktree Handle</label>
+        <input
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          className="w-full p-3 rounded-lg bg-[var(--cc-background)] border border-gray-600"
+        />
+        <p className="text-xs mt-1 text-gray-500">Your public link will be: yoursite.com/{username}</p>
+      </div>
+
+      <div>
+        <label htmlFor="bio" className="block text-sm font-medium mb-2">Bio/Description</label>
+        <textarea
+          id="bio"
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          rows={3}
+          className="w-full p-3 rounded-lg bg-[var(--cc-background)] border border-gray-600"
+        />
+      </div>
+
+      <button type="submit" className="cc-primary-button w-full bg-[var(--cc-primary)] text-black py-3 rounded-lg font-semibold">
+        Save Profile
+      </button>
+    </form>
   );
 }
