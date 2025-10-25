@@ -3,9 +3,9 @@
 
 import React from 'react'; // <-- Import React
 // ⬇️ FIX: Import the LinkProvider component from your context file
-import { LinkProvider } from '@/context/LinkContext'; // Use alias if configured
+import { LinkProvider } from './context/LinkContext'; // Use alias if configured
 // OR if using relative path:
-// import { LinkProvider } from '../context/LinkContext';
+// import { LinkProvider } from './context/LinkContext';
 
 export function RootLayoutClient({ children }: { children: React.ReactNode }) {
   // Assuming the goal is to wrap the whole app in the provider

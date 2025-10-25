@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Edit, Trash2, Plus, Menu, Link as LinkIcon, Instagram, MessageCircle, Github, Linkedin, Twitter } from 'lucide-react'; 
-import LinkPreview from './components/LinkPreview';
+import {LinkPreview} from './components/LinkPreview';
 import { useState } from 'react';
 
 interface LinkItem {
