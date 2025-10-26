@@ -217,4 +217,161 @@ export const deleteProfilePicture = async (req: Request, res: Response) => {
     console.error('Delete profile picture error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+
+ // UPDATE PROFILE (Full Update)
+ // PUT /api/users/me
+ // Updates user profile information (name, email, bio, theme color)
+
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const { name, email, bio, themeColor } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Validate theme color format if provided
+    if (themeColor && !/^#[0-9A-F]{6}$/i.test(themeColor)) {
+      return res.status(400).json({ 
+        error: 'Invalid theme color format. Use hex format (#RRGGBB)' 
+      });
+    }
+
+    // Check if email is already taken by another user
+    if (email) {
+      const emailCheckQuery = 'SELECT id FROM users WHERE email = $1 AND id != $2';
+      const emailResult = await pool.query(emailCheckQuery, [email, userId]);
+      
+      if (emailResult.rows.length > 0) {
+        return res.status(400).json({ error: 'Email is already taken' });
+      }
+    }
+
+    // Build dynamic update query based on provided fields
+    let updateFields = [];
+    let values = [];
+    let paramCount = 1;
+
+    if (name !== undefined) {
+      updateFields.push(`name = $${paramCount}`);
+      values.push(name);
+      paramCount++;
+    }
+
+    if (email !== undefined) {
+      updateFields.push(`email = $${paramCount}`);
+      values.push(email);
+      paramCount++;
+    }
+
+    if (bio !== undefined) {
+      updateFields.push(`bio = $${paramCount}`);
+      values.push(bio);
+      paramCount++;
+    }
+
+    if (themeColor !== undefined) {
+      updateFields.push(`theme_color = $${paramCount}`);
+      values.push(themeColor);
+      paramCount++;
+    }
+
+    // Add updated timestamp and user ID
+    updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(userId);
+
+    if (updateFields.length === 1) { // Only updated_at was added
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    const updateQuery = `
+      UPDATE users 
+      SET ${updateFields.join(', ')} 
+      WHERE id = $${paramCount} 
+      RETURNING id, username, email, name, avatar, bio, theme_color, created_at, updated_at
+    `;
+
+    const result = await pool.query(updateQuery, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: user,
+        publicUrl: `krafters/${user.username}`
+      }
+    });
+
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+ // DELETE USER PROFILE
+ // DELETE /api/users/me
+ // Permanently deletes user account (requires password confirmation)
+ 
+export const deleteProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const { password } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required to delete account' });
+    }
+
+    // Get user to verify password and avatar
+    const getUserQuery = 'SELECT * FROM users WHERE id = $1';
+    const userResult = await pool.query(getUserQuery, [userId]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
+
+    // Delete avatar file if exists
+    if (user.avatar) {
+      try {
+        const filename = path.basename(user.avatar);
+        const filePath = path.join('uploads/avatars', filename);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (fileError) {
+        console.error('Error deleting avatar file during account deletion:', fileError);
+      }
+    }
+
+    // Delete user from database
+    const deleteQuery = 'DELETE FROM users WHERE id = $1';
+    await pool.query(deleteQuery, [userId]);
+
+    res.status(200).json({
+      success: true,
+      message: 'Account deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Delete profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 };
