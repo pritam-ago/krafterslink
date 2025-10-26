@@ -18,9 +18,12 @@
         "name": "next"
       }
     ],
+    // ⬇️ CRITICAL FIX: Add "baseUrl" and correct the "@/" path mapping
+    "baseUrl": ".", 
     "paths": {
       "@/*": ["./*"]
     }
+    // Note: I removed the erroneous "./*" path mapping.
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]

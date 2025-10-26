@@ -15,19 +15,20 @@ interface LinkItem {
 export default function DashboardPage() {
     // Initial State - Titles are now generic/editable by default
     const [links, setLinks] = useState<LinkItem[]>([
-        { id: 1, title: 'Check out our Instagram', url: 'https://instagram.com/club', active: true },
-        { id: 2, title: 'Message us on WhatsApp', url: 'https://wa.me/invite', active: true },
-        { id: 3, title: 'Our main GitHub Repository', url: 'https://github.com/codekrafters', active: true },
-        { id: 4, title: 'Find us on LinkedIn', url: 'https://linkedin.com/company/codekrafters', active: true },
-        { id: 5, title: 'Follow our Twitter/X', url: 'https://twitter.com/codekrafters', active: false },
+        { id: 1, title: 'Instagram', url: 'Enter your Instagram Url', active: true },
+        { id: 2, title: 'WhatsApp', url: 'Enter your Whatsapp Invite Link', active: true },
+        { id: 3, title: 'GitHub Repository', url: 'Enter your Github Url', active: true },
+        { id: 4, title: 'LinkedIn', url: 'Enter your LinkedIn Url', active: true },
+        { id: 5, title: 'Twitter/X', url: 'Enter your Twitter Url', active: false },
     ]);
 
-    const [profile] = useState({
-        username: 'codekrafters_club', 
-        bio: 'Official links for CodeKrafters Club',
-        themeColor: '#1A1A1A', // Dark Gray for the preview background
-    });
-
+   const [profile] = useState({
+    // ⬇️ Display text is stored in 'username' for ease of use in the LinkPreview component
+    username: 'One space for all your links',
+    bio: 'add', // ⬅️ COMMA ADDED HERE (This was the syntax error)
+    // ⬇️ Theme color set to a distinct Yellow/Gold
+    themeColor: '#FFC107', 
+});
     // Function to handle dynamic Title update
     const handleTitleChange = (id: number, newTitle: string) => {
         setLinks(links.map(link => 
@@ -124,7 +125,7 @@ export default function DashboardPage() {
 
             {/* Right Column: Live Preview */}
             <div className="lg:col-span-1 hidden lg:block">
-                <LinkPreview 
+                <LinkPreview
                     username={profile.username}
                     bio={profile.bio}
                     links={links} // Passes the updated state

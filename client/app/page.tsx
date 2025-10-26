@@ -15,11 +15,11 @@ interface LinkItem {
 export default function DashboardPage() {
     // Initial State - Titles are now generic/editable by default
     const [links, setLinks] = useState<LinkItem[]>([
-        { id: 1, title: 'Check out our Instagram', url: 'https://instagram.com/club', active: true },
-        { id: 2, title: 'Message us on WhatsApp', url: 'https://wa.me/invite', active: true },
-        { id: 3, title: 'Our main GitHub Repository', url: 'https://github.com/codekrafters', active: true },
-        { id: 4, title: 'Find us on LinkedIn', url: 'https://linkedin.com/company/codekrafters', active: true },
-        { id: 5, title: 'Follow our Twitter/X', url: 'https://twitter.com/codekrafters', active: false },
+        { id: 1, title: 'Instagram', url: 'Enter your Instagram Url', active: true },
+        { id: 2, title: 'WhatsApp', url: 'Enter your WhatsApp Invite Link', active: true },
+        { id: 3, title: 'GitHub Repository', url: 'Enter your GitHub Url', active: true },
+        { id: 4, title: 'LinkedIn', url: 'Enter your LinkedIn Url', active: true },
+        { id: 5, title: 'Twitter/X', url: 'Enter your Twitter/X Url', active: false },
     ]);
 
     const [profile] = useState({
@@ -124,7 +124,7 @@ export default function DashboardPage() {
 
             {/* Right Column: Live Preview */}
             <div className="lg:col-span-1 hidden lg:block">
-                <LinkPreview 
+                <LinkPreview
                     username={profile.username}
                     bio={profile.bio}
                     links={links} // Passes the updated state

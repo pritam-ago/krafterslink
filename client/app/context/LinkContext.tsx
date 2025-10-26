@@ -1,10 +1,8 @@
 // context/LinkContext.tsx
-
-"use client"; // ⬅️ CRITICAL FIX: Mark this file as a Client Module
+"use client"; 
 
 import React, { createContext, useContext, Dispatch, SetStateAction, ReactNode, useState } from 'react';
 
-// Define the LinkItem structure
 export interface LinkItem {
     id: number;
     title: string;
@@ -12,29 +10,22 @@ export interface LinkItem {
     active: boolean;
 }
 
-// Define the shape of the Context
 interface LinkContextType {
     links: LinkItem[];
     setLinks: Dispatch<SetStateAction<LinkItem[]>>;
 }
 
-// Create the Context
 export const LinkContext = createContext<LinkContextType | undefined>(undefined);
 
-// Define the initial state here
 const initialLinks: LinkItem[] = [
-    { id: 1, title: 'Check out our Instagram', url: 'https://instagram.com/club', active: true },
-    { id: 2, title: 'Message us on WhatsApp', url: 'https://wa.me/invite', active: true },
-    { id: 3, title: 'Our main GitHub Repository', url: 'https://github.com/codekrafters', active: true },
-    { id: 4, title: 'Find us on LinkedIn', url: 'https://linkedin.com/company/codekrafters', active: true },
-    { id: 5, title: 'Follow our Twitter/X', url: 'https://twitter.com/codekrafters', active: true },
+    { id: 1, title: 'Instagram', url: 'Enter your Instagram Url', active: true },
+    { id: 2, title: 'WhatsApp', url: 'Enter your WhatsApp Invite Link', active: true },
+    { id: 3, title: 'GitHub Repository', url: 'Enter your GitHub Url', active: true },
+    { id: 4, title: 'LinkedIn', url: 'Enter your LinkedIn Url', active: true },
+    { id: 5, title: 'Twitter/X', url: 'Enter your Twitter/X Url', active: true },
 ];
 
-/**
- * The LinkProvider component that holds and manages the global state.
- */
 export const LinkProvider = ({ children }: { children: ReactNode }) => {
-    // ⬇️ useState is now valid because of "use client"
     const [links, setLinks] = useState<LinkItem[]>(initialLinks);
     
     return (
@@ -44,10 +35,7 @@ export const LinkProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-
-// Custom hook to consume the link context
 export const useLinkContext = () => {
-    // ⬇️ useContext is now valid because of "use client"
     const context = useContext(LinkContext);
     if (!context) {
         throw new Error('useLinkContext must be used within a LinkProvider');
@@ -55,3 +43,4 @@ export const useLinkContext = () => {
     return context;
 };
 
+export type { 'LinkItem' };
